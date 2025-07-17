@@ -4,7 +4,29 @@ import esphome.codegen as cg
 from esphome.const import (
     CONF_ID,
     CONF_TYPE,
+    CONF_NAME,
+    CONF_VISUAL,
+    CONF_TARGET_TEMPERATURE,
+    CONF_MIN_TEMPERATURE,
+    CONF_MAX_TEMPERATURE,
+    CONF_TEMPERATURE_STEP,
 )
+from esphome.components.climate import (
+    ClimateMode,
+)
+
+CLIMATE_MODES = {
+    "OFF": ClimateMode.CLIMATE_MODE_OFF,
+    "HEAT": ClimateMode.CLIMATE_MODE_HEAT,
+    "AUTO": ClimateMode.CLIMATE_MODE_AUTO,
+}
+CLIMATE_VISUAL_SCHEMA = cv.Schema({
+    cv.Optional(CONF_TARGET_TEMPERATURE, default={}): cv.Schema({
+        cv.Optional(CONF_MIN_TEMPERATURE, default=5.0): cv.float_,
+        cv.Optional(CONF_MAX_TEMPERATURE, default=30.0): cv.float_,
+        cv.Optional(CONF_TEMPERATURE_STEP, default=0.5): cv.float_,
+    })
+})
 from .. import truma_inetbox_ns, CONF_TRUMA_INETBOX_ID, TrumaINetBoxApp
 
 DEPENDENCIES = ["truma_inetbox"]
@@ -28,13 +50,22 @@ def set_default_based_on_type():
     return set_defaults_
 
 
-CONFIG_SCHEMA = climate.CLIMATE_SCHEMA.extend(
-    {
-        cv.GenerateID(): cv.declare_id(TrumaClimate),
-        cv.GenerateID(CONF_TRUMA_INETBOX_ID): cv.use_id(TrumaINetBoxApp),
-        cv.Required(CONF_TYPE): cv.enum(CONF_SUPPORTED_TYPE, upper=True),
-    }
-).extend(cv.COMPONENT_SCHEMA)
+CONFIG_SCHEMA = cv.Schema({
+    cv.GenerateID(): cv.declare_id(TrumaClimate),
+    cv.GenerateID(CONF_TRUMA_INETBOX_ID): cv.use_id(TrumaINetBoxApp),
+    cv.Required(CONF_TYPE): cv.enum(CONF_SUPPORTED_TYPE, upper=True),
+
+    cv.Optional(CONF_NAME, default="Truma Climate"): cv.string,
+
+    cv.Optional("preset"): cv.All(cv.ensure_list(cv.string)),  # If you want presets
+    cv.Optional("supported_modes", default=["OFF", "HEAT"]): cv.ensure_list(cv.enum(CLIMATE_MODES, upper=True)),
+}).extend(cv.COMPONENT_SCHEMA).extend({
+    cv.Optional("disabled_by_default", default=False): cv.boolean,
+    cv.Optional("entity_category"): cv.entity_category,
+    cv.Optional("icon"): cv.icon,
+    cv.Optional(CONF_VISUAL, default={}): CLIMATE_VISUAL_SCHEMA,
+})
+
 FINAL_VALIDATE_SCHEMA = set_default_based_on_type()
 
 
@@ -43,3 +74,15 @@ async def to_code(config):
     await cg.register_component(var, config)
     await climate.register_climate(var, config)
     await cg.register_parented(var, config[CONF_TRUMA_INETBOX_ID])
+
+    # Optional visual settings
+    #if "visual" in config:
+    #    visual = config["visual"]
+    #    cg.add(var.set_visual_min_temperature(visual["min_temperature"]))
+    #    cg.add(var.set_visual_max_temperature(visual["max_temperature"]))
+    #    cg.add(var.set_visual_temperature_step(visual["temperature_step"]))
+
+    # Optional supported modes
+    if "supported_modes" in config:
+        modes = [CLIMATE_MODES[m] for m in config["supported_modes"]]
+        cg.add(var.set_supported_modes(modes))
