@@ -27,7 +27,7 @@ void LinBusListener::setup_framework() {
 
   // Extract from `uartSetFastReading` - Can't call it because I don't have access to `uart_t` object.
 
-  // Tweak the fifo settings so data is available as soon as the first byte is recieved.
+  // Tweak the fifo settings so data is available as soon as the first byte is received.
   // If not it will wait either until fifo is filled or a certain time has passed.
   uart_intr_config_t uart_intr;
   uart_intr.intr_enable_mask = UART_RXFIFO_FULL_INT_ENA_M | UART_RXFIFO_TOUT_INT_ENA_M;
@@ -35,16 +35,15 @@ void LinBusListener::setup_framework() {
   uart_intr.rx_timeout_thresh = 10;
   uart_intr.txfifo_empty_intr_thresh = 10;
 
-  // 🔧 FIXED line:
-  uart_intr_config(static_cast<uart_port_t>(uart_num), &uart_intr);
+  uart_intr_config(uart_num, &uart_intr);  // Fixed: use uart_num as uart_port_t
 
   hw_serial->onReceive([this]() { this->onReceive_(); }, false);
   hw_serial->onReceiveError([this](hardwareSerial_error_t val) {
     // Ignore any data present in buffer
     this->clear_uart_buffer_();
     if (val == UART_BREAK_ERROR) {
-      // If the break is valid the `onReceive` is called first and the break is handeld. Therfore the expectation is
-      // that the state should be in waiting for `SYNC`.
+      // If the break is valid the `onReceive` is called first and the break is handled.
+      // Therefore the expectation is that the state should be in waiting for `SYNC`.
       if (this->current_state_ != READ_STATE_SYNC) {
         this->current_state_ = READ_STATE_BREAK;
       }
@@ -54,13 +53,12 @@ void LinBusListener::setup_framework() {
 
   // Creating LIN msg event Task
   xTaskCreatePinnedToCore(LinBusListener::eventTask_,
-                          "lin_event_task",         // name
-                          4096,                     // stack size (in words)
-                          this,                     // input params
-                          2,                        // priority
-                          &this->eventTaskHandle_,  // handle
-                          0                         // core
-  );
+                          "lin_event_task",  // name
+                          4096,              // stack size (in words)
+                          this,              // input params
+                          2,                 // priority
+                          &this->eventTaskHandle_,
+                          0);  // core
 
   if (this->eventTaskHandle_ == NULL) {
     ESP_LOGE(TAG, " -- LIN message Task not created!");
