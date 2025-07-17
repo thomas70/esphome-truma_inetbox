@@ -2,6 +2,8 @@
 
 #include "esphome/core/log.h"
 
+#include <cstdint>
+
 #define truma_log(_log_msg_) xQueueSend(this->log_queue_, (void *) &_log_msg_, QUEUE_WAIT_DONT_BLOCK);
 
 #define truma_logfromisr(_log_msg_) xQueueSendFromISR(this->log_queue_, (void *) &_log_msg_, QUEUE_WAIT_DONT_BLOCK);
@@ -66,9 +68,9 @@ enum class QUEUE_LOG_MSG_TYPE {
 // Log messages generated during interrupt are pushed to log queue.
 struct QUEUE_LOG_MSG {
   QUEUE_LOG_MSG_TYPE type;
-  u_int8_t current_PID;
-  u_int8_t data[9];
-  u_int8_t len;
+  uint8_t current_PID;
+  uint8_t data[9];
+  uint8_t len;
 #ifdef ESPHOME_LOG_HAS_VERBOSE
   bool current_data_valid;
   bool message_source_know;
