@@ -45,11 +45,16 @@ climate::ClimateTraits TrumaWaterClimate::traits() {
   // The capabilities of the climate device
   auto traits = climate::ClimateTraits();
   traits.set_supports_current_temperature(true);
-  traits.set_supported_modes({climate::CLIMATE_MODE_OFF, climate::CLIMATE_MODE_HEAT});
+  traits.set_supported_modes(this->supported_modes_);
   traits.set_visual_min_temperature(40);
   traits.set_visual_max_temperature(80);
   traits.set_visual_temperature_step(20);
   return traits;
 }
+
+void TrumaWaterClimate::set_supported_modes(const std::set<climate::ClimateMode> &modes) {
+  this->supported_modes_ = modes;
+}
+
 }  // namespace truma_inetbox
 }  // namespace esphome
