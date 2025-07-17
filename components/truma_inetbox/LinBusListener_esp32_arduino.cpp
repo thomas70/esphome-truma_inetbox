@@ -22,15 +22,13 @@ static const char *const TAG = "truma_inetbox.LinBusListener";
 void LinBusListener::setup_framework() {
   auto uartComp = static_cast<ESPHOME_UART *>(this->parent_);
 
-  // Get raw UART number (likely unsigned char)
-  auto uart_num_raw = uartComp->get_hw_serial_number();
-
-  // Explicitly cast raw uart number to uart_port_t enum
-  uart_port_t uart_num = static_cast<uart_port_t>(uart_num_raw);
+  // Explicit cast workaround to fix invalid conversion error
+  uint8_t uart_num_raw = uartComp->get_hw_serial_number();
+  uart_port_t uart_num = static_cast<uart_port_t>(static_cast<int>(uart_num_raw));
 
   auto hw_serial = uartComp->get_hw_serial();
 
-  // Configure UART interrupts for quick RX FIFO trigger
+  // Configure UART interrupt settings
   uart_intr_config_t uart_intr;
   uart_intr.intr_enable_mask = UART_RXFIFO_FULL_INT_ENA_M | UART_RXFIFO_TOUT_INT_ENA_M;
   uart_intr.rxfifo_full_thresh = 1;
@@ -41,6 +39,7 @@ void LinBusListener::setup_framework() {
 
   hw_serial->onReceive([this]() { this->onReceive_(); }, false);
   hw_serial->onReceiveError([this](hardwareSerial_error_t val) {
+    // Clear buffer on error
     this->clear_uart_buffer_();
     if (val == UART_BREAK_ERROR) {
       if (this->current_state_ != READ_STATE_SYNC) {
@@ -50,15 +49,14 @@ void LinBusListener::setup_framework() {
     }
   });
 
-  xTaskCreatePinnedToCore(
-      LinBusListener::eventTask_,
-      "lin_event_task",   // task name
-      4096,               // stack size in words
-      this,               // parameter
-      2,                  // priority
-      &this->eventTaskHandle_,
-      0                   // core
-  );
+  // Create a FreeRTOS task pinned to core 0 for processing LIN bus messages
+  xTaskCreatePinnedToCore(LinBusListener::eventTask_,
+                          "lin_event_task",    // task name
+                          4096,                // stack size in words
+                          this,                // parameter
+                          2,                   // priority
+                          &this->eventTaskHandle_,
+                          0);                  // core ID
 
   if (this->eventTaskHandle_ == NULL) {
     ESP_LOGE(TAG, " -- LIN message Task not created!");
@@ -66,7 +64,7 @@ void LinBusListener::setup_framework() {
 }
 
 void LinBusListener::eventTask_(void *args) {
-  LinBusListener *instance = (LinBusListener *) args;
+  LinBusListener *instance = (LinBusListener *)args;
   for (;;) {
     instance->process_lin_msg_queue(QUEUE_WAIT_BLOCKING);
   }
