@@ -22,7 +22,7 @@ static const char *const TAG = "truma_inetbox.LinBusListener";
 void LinBusListener::setup_framework() {
   auto uartComp = static_cast<ESPHOME_UART *>(this->parent_);
 
-  auto uart_num = uartComp->get_hw_serial_number();
+  uart_port_t uart_num = static_cast<uart_port_t>(uartComp->get_hw_serial_number());
   auto hw_serial = uartComp->get_hw_serial();
 
   // Extract from `uartSetFastReading` - Can't call it because I don't have access to `uart_t` object.
