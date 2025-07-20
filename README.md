@@ -6,7 +6,7 @@ See [1](https://github.com/danielfett/inetbox.py) and [2](https://github.com/mc0
 
 ## Acknowledgements
 
-This project is based on the work of the [WomoLIN project](https://github.com/muccc/WomoLIN) and [mc0110 inetbox.py](https://github.com/danielfett/inetbox.py), especially the initial protocol decoding and the inet box log files.
+This project is based on the excellent work of [Fabian Schmidt](https://github.com/Fabian-Schmidt/esphome-truma_inetbox) and [WomoLIN project](https://github.com/muccc/WomoLIN) and [mc0110 inetbox.py](https://github.com/danielfett/inetbox.py), especially the initial protocol decoding and the inet box log files.
 
 ## Example configuation
 
