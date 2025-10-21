@@ -52,7 +52,7 @@ class LinBusListener : public PollingComponent, public uart::UARTDevice {
 
 #ifdef USE_RP2040
   // Return is the expected wait time till next data check is recommended.
-  u_int32_t onSerialEvent();
+  uint32_t onSerialEvent();
 #endif  // USE_RP2040
 
  protected:
@@ -68,18 +68,18 @@ class LinBusListener : public PollingComponent, public uart::UARTDevice {
 
  private:
   // Microseconds per UART Baud
-  u_int32_t time_per_baud_;
+  uint32_t time_per_baud_;
   // 9.. 15
   const uint8_t lin_break_length = 13;
   // Microseconds per LIN Break
-  u_int32_t time_per_lin_break_;
+  uint32_t time_per_lin_break_;
   const uint8_t frame_length_ = (8 /* bits */ + 1 /* Start bit */ + 2 /* Stop bits */);
   // Microseconds per UART Byte (UART Frame)
-  u_int32_t time_per_pid_;
+  uint32_t time_per_pid_;
   // Microseconds per UART Byte (UART Frame)
-  u_int32_t time_per_first_byte_;
+  uint32_t time_per_first_byte_;
   // Microseconds per UART Byte (UART Frame)
-  u_int32_t time_per_byte_;
+  uint32_t time_per_byte_;
 
   uint8_t fault_on_lin_bus_reported_ = 0;
   bool can_write_lin_answer_ = false;
