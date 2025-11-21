@@ -155,6 +155,6 @@ CheckOptions:
   - key:             readability-identifier-naming.VirtualMethodCase
     value:           'lower_case'
   - key:             readability-identifier-naming.VirtualMethodSuffix
-    value:           ''
+    value: ''
   - key:             readability-qualified-auto.AddConstToQualified
     value:           0
